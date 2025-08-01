@@ -46,6 +46,8 @@ export default function ServiceDetailPage() {
             working_at,
             completed_at,
             canceled_at,
+            store_id,
+            service_id,
             stores:store_id(id, name, address),
             services:service_id(name)
           `)
@@ -67,10 +69,19 @@ export default function ServiceDetailPage() {
           console.error('요청 상세 정보 조회 실패:', detailError)
         }
 
-        setRequest({
+        // stores와 services가 배열로 반환되므로 처리
+        const processedData = {
           ...requestData,
+          stores: Array.isArray(requestData.stores) && requestData.stores.length > 0 
+            ? requestData.stores[0] 
+            : { id: '', name: '알 수 없는 가게', address: '주소 정보 없음' },
+          services: Array.isArray(requestData.services) && requestData.services.length > 0 
+            ? requestData.services[0] 
+            : { name: '알 수 없는 서비스' },
           request_details: detailData || []
-        })
+        }
+
+        setRequest(processedData)
       } catch (error) {
         console.error('데이터 로드 중 오류:', error)
       } finally {
@@ -228,7 +239,7 @@ export default function ServiceDetailPage() {
                 </p>
               </div>
               <div className="text-4xl">
-                {getServiceIcon(request.services?.name || '')}
+                {getServiceIcon(request.services?.name ? request.services.name : 'default')}
               </div>
             </div>
           </CardContent>
@@ -337,7 +348,7 @@ export default function ServiceDetailPage() {
                       <div className="flex-1">
                         <p className="font-medium text-gray-900">{step.label}</p>
                         <p className="text-sm text-gray-500">
-                          {formatFullDateTime(step.timestamp)}
+                          {formatFullDateTime(step.timestamp || '')}  
                         </p>
                       </div>
                     </div>

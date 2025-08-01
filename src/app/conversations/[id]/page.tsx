@@ -77,7 +77,15 @@ export default function ConversationDetailPage() {
           return
         }
 
-        setConversation(conversationData)
+        // stores가 배열로 반환되므로 첫 번째 요소를 사용
+        const processedData = {
+          ...conversationData,
+          stores: Array.isArray(conversationData.stores) && conversationData.stores.length > 0 
+            ? conversationData.stores[0] 
+            : { name: '알 수 없는 가게', address: '주소 정보 없음' }
+        }
+
+        setConversation(processedData)    
 
         // 관리자 자동 할당 (admin_id가 없는 경우)
         if (!conversationData.admin_id && adminId) {

@@ -65,6 +65,8 @@ export default function StoreDetailPage() {
             working_at,
             completed_at,
             canceled_at,
+            store_id,
+            service_id,
             services:service_id(name)
           `)
           .eq('store_id', storeId)
@@ -73,7 +75,14 @@ export default function StoreDetailPage() {
         if (requestsError) {
           console.error('서비스 요청 내역 조회 실패:', requestsError)
         } else {
-          setRequests(requestsData || [])
+          // services가 배열로 반환되므로 처리
+          const processedData = (requestsData || []).map(request => ({
+            ...request,
+            services: Array.isArray(request.services) && request.services.length > 0 
+              ? request.services[0] 
+              : { name: '알 수 없는 서비스' }
+          }))
+          setRequests(processedData)
         }
 
       } catch (error) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase, ServiceRequest, SERVICE_NAME_MAP } from '@/lib/supabase'
@@ -13,7 +13,7 @@ import { Search, Filter, Eye } from 'lucide-react'
 
 const CATEGORIES = ['전체', '요청됨', '진행중', '완료', '취소']
 
-export default function ServicesPage() {
+function ServicesPageContent() {
   const [requests, setRequests] = useState<ServiceRequest[]>([])
   const [filteredRequests, setFilteredRequests] = useState<ServiceRequest[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,6 +35,8 @@ export default function ServicesPage() {
           working_at,
           completed_at,
           canceled_at,
+          store_id,
+          service_id,
           stores:store_id(id, name, address),
           services:service_id(name)
         `)
@@ -43,7 +45,17 @@ export default function ServicesPage() {
       if (error) {
         console.error('서비스 요청 로드 실패:', error)
       } else {
-        setRequests(data || [])
+        // stores와 services가 배열로 반환되므로 처리
+        const processedData = (data || []).map(request => ({
+          ...request,
+          stores: Array.isArray(request.stores) && request.stores.length > 0 
+            ? request.stores[0] 
+            : { id: '', name: '알 수 없는 가게', address: '주소 정보 없음' },
+          services: Array.isArray(request.services) && request.services.length > 0 
+            ? request.services[0] 
+            : { name: '알 수 없는 서비스' }
+        }))
+        setRequests(processedData)
       }
     } catch (error) {
       console.error('서비스 요청 로드 중 오류:', error)
@@ -222,6 +234,20 @@ export default function ServicesPage() {
         )}
       </div>
     </AdminLayout>
+  )
+}
+
+export default function ServicesPage() {
+  return (
+    <Suspense fallback={
+      <AdminLayout>
+        <div className="p-6 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+        </div>
+      </AdminLayout>
+    }>
+      <ServicesPageContent />
+    </Suspense>
   )
 }
 

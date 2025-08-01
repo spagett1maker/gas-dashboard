@@ -27,14 +27,24 @@ export default function ConversationsPage() {
           admin_id,
           updated_at,
           stores:store_id(name),
-          messages(content, created_at)
+          messages(id, conversation_id, sender_id, content, created_at)
         `)
         .order('updated_at', { ascending: false })
 
       if (error) {
         console.error('대화 목록 로드 실패:', error)
       } else {
-        setConversations(data || [])
+        // stores와 messages가 배열로 반환되므로 처리
+        const processedData = (data || []).map(conversation => ({
+          ...conversation,
+          stores: Array.isArray(conversation.stores) && conversation.stores.length > 0 
+            ? conversation.stores[0] 
+            : { name: '알 수 없는 가게' },
+          messages: Array.isArray(conversation.messages) 
+            ? conversation.messages 
+            : []
+        }))
+        setConversations(processedData as Conversation[])
       }
     } catch (error) {
       console.error('대화 목록 로드 중 오류:', error)
