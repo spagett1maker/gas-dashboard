@@ -26,7 +26,7 @@ export default function ConversationsPage() {
           store_id,
           admin_id,
           updated_at,
-          stores:store_id(name),
+          stores(name),
           messages(id, conversation_id, sender_id, content, created_at)
         `)
         .order('updated_at', { ascending: false })
@@ -34,17 +34,11 @@ export default function ConversationsPage() {
       if (error) {
         console.error('대화 목록 로드 실패:', error)
       } else {
-        // stores와 messages가 배열로 반환되므로 처리
-        const processedData = (data || []).map(conversation => ({
-          ...conversation,
-          stores: Array.isArray(conversation.stores) && conversation.stores.length > 0 
-            ? conversation.stores[0] 
-            : { name: '알 수 없는 가게' },
-          messages: Array.isArray(conversation.messages) 
-            ? conversation.messages 
-            : []
+        const formattedData = (data || []).map(item => ({
+          ...item,
+          store: Array.isArray(item.stores) ? item.stores[0] : item.stores
         }))
-        setConversations(processedData as Conversation[])
+        setConversations(formattedData as Conversation[])
       }
     } catch (error) {
       console.error('대화 목록 로드 중 오류:', error)
@@ -64,8 +58,8 @@ export default function ConversationsPage() {
     } else {
       const term = searchTerm.toLowerCase()
       const filtered = conversations.filter(conversation =>
-        conversation.stores?.name?.toLowerCase().includes(term) ||
-        conversation.messages?.some(msg => 
+        conversation.store?.name?.toLowerCase().includes(term) ||
+        conversation.messages?.some(msg =>
           msg.content?.toLowerCase().includes(term)
         )
       )
@@ -166,7 +160,7 @@ export default function ConversationsPage() {
                     placeholder="가게명 또는 메시지 내용으로 검색..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-full"
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-full text-gray-900"
                   />
                 </div>
               </div>
@@ -212,7 +206,7 @@ export default function ConversationsPage() {
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-1">
                                 <h3 className="text-lg font-semibold text-gray-900">
-                                  {conversation.stores?.name || '알 수 없는 가게'}
+                                  {conversation.store?.name || '알 수 없는 가게'}
                                 </h3>
                                 {!conversation.admin_id && (
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">

@@ -37,25 +37,20 @@ function ServicesPageContent() {
           canceled_at,
           store_id,
           service_id,
-          stores:store_id(id, name, address),
-          services:service_id(name)
+          stores(id, name, address),
+          services(name)
         `)
         .order('created_at', { ascending: false })
 
       if (error) {
         console.error('서비스 요청 로드 실패:', error)
       } else {
-        // stores와 services가 배열로 반환되므로 처리
-        const processedData = (data || []).map(request => ({
-          ...request,
-          stores: Array.isArray(request.stores) && request.stores.length > 0 
-            ? request.stores[0] 
-            : { id: '', name: '알 수 없는 가게', address: '주소 정보 없음' },
-          services: Array.isArray(request.services) && request.services.length > 0 
-            ? request.services[0] 
-            : { name: '알 수 없는 서비스' }
+        const formattedData = (data || []).map(item => ({
+          ...item,
+          store: Array.isArray(item.stores) ? item.stores[0] : item.stores,
+          service: Array.isArray(item.services) ? item.services[0] : item.services
         }))
-        setRequests(processedData)
+        setRequests(formattedData as ServiceRequest[])
       }
     } catch (error) {
       console.error('서비스 요청 로드 중 오류:', error)
@@ -87,9 +82,9 @@ function ServicesPageContent() {
     // 검색 필터
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase()
-      filtered = filtered.filter(request => 
-        request.stores?.name?.toLowerCase().includes(term) ||
-        SERVICE_NAME_MAP[request.services?.name || '']?.toLowerCase().includes(term)
+      filtered = filtered.filter(request =>
+        request.store?.name?.toLowerCase().includes(term) ||
+        SERVICE_NAME_MAP[request.service?.name || '']?.toLowerCase().includes(term)
       )
     }
 
@@ -149,7 +144,7 @@ function ServicesPageContent() {
                   placeholder="가게명 또는 서비스명으로 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-full sm:w-80"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-full sm:w-80 text-gray-900"
                 />
               </div>
             </div>
@@ -182,20 +177,20 @@ function ServicesPageContent() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                               <div className="text-2xl">
-                                {getServiceIcon(request.services?.name || '')}
+                                {getServiceIcon(request.service?.name || '')}
                               </div>
                               <div className="flex-1">
                                 <div className="flex items-center space-x-2 mb-1">
                                   <h4 className="text-lg font-semibold text-gray-900">
-                                    {request.stores?.name || '알 수 없는 가게'}
+                                    {request.store?.name || '알 수 없는 가게'}
                                   </h4>
                                   <StatusBadge status={request.status} />
                                 </div>
                                 <p className="text-sm text-gray-600 mb-1">
-                                  {SERVICE_NAME_MAP[request.services?.name || ''] || request.services?.name}
+                                  {SERVICE_NAME_MAP[request.service?.name || ''] || request.service?.name}
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                  {request.stores?.address}
+                                  {request.store?.address}
                                 </p>
                               </div>
                             </div>

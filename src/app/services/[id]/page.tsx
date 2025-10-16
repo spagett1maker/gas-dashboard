@@ -48,8 +48,8 @@ export default function ServiceDetailPage() {
             canceled_at,
             store_id,
             service_id,
-            stores:store_id(id, name, address),
-            services:service_id(name)
+            stores(id, name, address),
+            services(name)
           `)
           .eq('id', requestId)
           .single()
@@ -69,18 +69,12 @@ export default function ServiceDetailPage() {
           console.error('요청 상세 정보 조회 실패:', detailError)
         }
 
-        // stores와 services가 배열로 반환되므로 처리
         const processedData = {
           ...requestData,
-          stores: Array.isArray(requestData.stores) && requestData.stores.length > 0 
-            ? requestData.stores[0] 
-            : { id: '', name: '알 수 없는 가게', address: '주소 정보 없음' },
-          services: Array.isArray(requestData.services) && requestData.services.length > 0 
-            ? requestData.services[0] 
-            : { name: '알 수 없는 서비스' },
+          store: Array.isArray(requestData.stores) ? requestData.stores[0] : requestData.stores,
+          service: Array.isArray(requestData.services) ? requestData.services[0] : requestData.services,
           request_details: detailData || []
         }
-
         setRequest(processedData)
       } catch (error) {
         console.error('데이터 로드 중 오류:', error)
@@ -239,7 +233,7 @@ export default function ServiceDetailPage() {
                 </p>
               </div>
               <div className="text-4xl">
-                {getServiceIcon(request.services?.name ? request.services.name : 'default')}
+                {getServiceIcon(request.service?.name ? request.service.name : 'default')}
               </div>
             </div>
           </CardContent>
@@ -256,7 +250,7 @@ export default function ServiceDetailPage() {
                 <div>
                   <p className="text-sm text-gray-500 mb-1">가게명</p>
                   <p className="font-semibold text-gray-900">
-                    {request.stores?.name || '정보 없음'}
+                    {request.store?.name || '정보 없음'}
                   </p>
                 </div>
                 <div>
@@ -264,7 +258,7 @@ export default function ServiceDetailPage() {
                   <div className="flex items-start space-x-2">
                     <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
                     <p className="text-gray-700">
-                      {request.stores?.address || '정보 없음'}
+                      {request.store?.address || '정보 없음'}
                     </p>
                   </div>
                 </div>
@@ -282,7 +276,7 @@ export default function ServiceDetailPage() {
                 <div>
                   <p className="text-sm text-gray-500 mb-1">서비스 유형</p>
                   <p className="font-semibold text-gray-900">
-                    {SERVICE_NAME_MAP[request.services?.name || ''] || request.services?.name}
+                    {SERVICE_NAME_MAP[request.service?.name || ''] || request.service?.name}
                   </p>
                 </div>
                 <div>

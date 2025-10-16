@@ -75,14 +75,14 @@ export default function StoreDetailPage() {
         if (requestsError) {
           console.error('서비스 요청 내역 조회 실패:', requestsError)
         } else {
-          // services가 배열로 반환되므로 처리
+          // services가 배열로 반환되므로 service로 변환
           const processedData = (requestsData || []).map(request => ({
             ...request,
-            services: Array.isArray(request.services) && request.services.length > 0 
-              ? request.services[0] 
+            service: Array.isArray(request.services) && request.services.length > 0
+              ? request.services[0]
               : { name: '알 수 없는 서비스' }
           }))
-          setRequests(processedData)
+          setRequests(processedData as ServiceRequest[])
         }
 
       } catch (error) {
@@ -225,11 +225,11 @@ export default function StoreDetailPage() {
                       <div key={request.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                         <div className="flex items-center space-x-3">
                           <div className="text-xl">
-                            {getServiceIcon(request.services?.name || '')}
+                            {getServiceIcon(request.service?.name || '')}
                           </div>
                           <div>
                             <p className="font-medium text-gray-900">
-                              {SERVICE_NAME_MAP[request.services?.name || ''] || request.services?.name}
+                              {SERVICE_NAME_MAP[request.service?.name || ''] || request.service?.name}
                             </p>
                             <div className="flex items-center space-x-2 text-sm text-gray-500">
                               <Clock className="h-3 w-3" />

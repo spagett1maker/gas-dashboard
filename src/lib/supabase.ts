@@ -47,12 +47,12 @@ export interface ServiceRequest {
   canceled_at?: string
   store_id: string
   service_id: string
-  stores?: {
+  store?: {
     id: string
     name: string
     address: string
   }
-  services?: {
+  service?: {
     name: string
   }
 }
@@ -71,7 +71,7 @@ export interface Conversation {
   store_id: string
   admin_id?: string
   updated_at: string
-  stores?: {
+  store?: {
     name: string
   }
   messages?: Message[]
@@ -90,5 +90,42 @@ export interface RequestDetail {
   request_id: string
   key: string
   value: string
+}
+
+export interface Inquiry {
+  id: string
+  user_id: string
+  store_id?: string
+  title: string
+  content: string
+  category: string
+  status: string
+  priority: string
+  created_at: string
+  updated_at: string
+  store?: {
+    name: string
+  }
+  inquiry_responses?: InquiryResponse[]
+}
+
+export interface InquiryResponse {
+  id: string
+  inquiry_id: string
+  admin_id: string
+  content: string
+  is_internal_note: boolean
+  created_at: string
+}
+
+export interface Notification {
+  id: string
+  user_id: string
+  type: string
+  title: string
+  description: string
+  icon_type: string
+  is_read: boolean
+  created_at: string
 }
 

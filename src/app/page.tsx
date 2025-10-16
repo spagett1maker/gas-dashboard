@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { BarChart3, Users, Wrench, MessageCircle, TrendingUp, Clock } from 'lucide-react'
+import { BarChart3, Users, Wrench, MessageCircle, TrendingUp, Clock, FileText } from 'lucide-react'
 import AdminLayout from '@/components/layout/AdminLayout'
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
 
@@ -14,6 +14,8 @@ interface DashboardStats {
   totalConversations: number
   completedToday: number
   inProgressRequests: number
+  totalInquiries: number
+  pendingInquiries: number
 }
 
 export default function Dashboard() {
@@ -24,6 +26,8 @@ export default function Dashboard() {
     totalConversations: 0,
     completedToday: 0,
     inProgressRequests: 0,
+    totalInquiries: 0,
+    pendingInquiries: 0,
   })
   const [loading, setLoading] = useState(true)
 
@@ -65,6 +69,17 @@ export default function Dashboard() {
           .from('conversations')
           .select('*', { count: 'exact', head: true })
 
+        // 전체 문의 수
+        const { count: totalInquiries } = await supabase
+          .from('inquiries')
+          .select('*', { count: 'exact', head: true })
+
+        // 대기 중인 문의 수
+        const { count: pendingInquiries } = await supabase
+          .from('inquiries')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', '접수됨')
+
         setStats({
           totalRequests: totalRequests || 0,
           pendingRequests: pendingRequests || 0,
@@ -72,6 +87,8 @@ export default function Dashboard() {
           completedToday: completedToday || 0,
           totalStores: totalStores || 0,
           totalConversations: totalConversations || 0,
+          totalInquiries: totalInquiries || 0,
+          pendingInquiries: pendingInquiries || 0,
         })
       } catch (error) {
         console.error('통계 데이터 로드 실패:', error)
@@ -214,6 +231,18 @@ export default function Dashboard() {
                     <p className="text-sm text-gray-600">등록된 가게들의 정보를 관리하세요</p>
                   </div>
                 </Link>
+                <Link
+                  href="/inquiries"
+                  className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
+                >
+                  <div className="bg-yellow-50 p-2 rounded-lg group-hover:bg-yellow-100 transition-colors">
+                    <FileText className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="font-medium text-gray-900">문의 관리</p>
+                    <p className="text-sm text-gray-600">고객 문의를 확인하고 답변하세요</p>
+                  </div>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -235,6 +264,18 @@ export default function Dashboard() {
                   <span className="text-sm font-medium text-gray-600">활성 대화</span>
                   <span className="text-sm font-bold text-gray-900">
                     {loading ? '...' : stats.totalConversations.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">전체 문의</span>
+                  <span className="text-sm font-bold text-gray-900">
+                    {loading ? '...' : stats.totalInquiries.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">대기 문의</span>
+                  <span className="text-sm font-bold text-gray-900">
+                    {loading ? '...' : stats.pendingInquiries.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
