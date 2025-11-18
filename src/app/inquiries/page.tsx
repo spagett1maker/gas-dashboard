@@ -7,7 +7,7 @@ import { formatDateTime } from '@/lib/utils'
 import AdminLayout from '@/components/layout/AdminLayout'
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Search, MessageCircle, Clock, AlertCircle, CheckCircle } from 'lucide-react'
+import { Search, MessageCircle, Clock, AlertCircle, CheckCircle, Phone, Store } from 'lucide-react'
 
 const STATUS_FILTERS = ['전체', '접수됨', '처리중', '완료', '보류']
 const PRIORITY_FILTERS = ['전체', '높음', '보통', '낮음']
@@ -36,7 +36,11 @@ export default function InquiriesPage() {
           priority,
           created_at,
           updated_at,
-          stores(name),
+          stores!store_id(
+            name,
+            address,
+            user_id
+          ),
           inquiry_responses(id, inquiry_id, admin_id, content, is_internal_note, created_at)
         `)
         .order('updated_at', { ascending: false })
@@ -44,10 +48,41 @@ export default function InquiriesPage() {
       if (error) {
         console.error('문의 목록 로드 실패:', error)
       } else {
-        const formattedData = (data || []).map((item) => ({
-          ...item,
-          store: Array.isArray(item.stores) ? item.stores[0] : item.stores
-        }))
+        // stores 배열을 단일 객체로 변환
+        const formattedData = (data || []).map((item) => {
+          const store = Array.isArray(item.stores) ? item.stores[0] : item.stores
+          return {
+            ...item,
+            store
+          }
+        })
+
+        // 각 store의 user_id로 profiles 조회
+        const userIds = formattedData
+          .map(item => item.store?.user_id)
+          .filter(Boolean) as string[]
+
+        if (userIds.length > 0) {
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, phone')
+            .in('id', userIds)
+
+          // profiles를 store에 매핑
+          const profilesMap = new Map(
+            (profilesData || []).map(p => [p.id, p])
+          )
+
+          formattedData.forEach((item: any) => {
+            if (item.store?.user_id) {
+              const profile = profilesMap.get(item.store.user_id)
+              if (profile) {
+                item.store = { ...item.store, profiles: { phone: profile.phone } }
+              }
+            }
+          })
+        }
+
         setInquiries(formattedData as Inquiry[])
       }
     } catch (error) {
@@ -280,7 +315,16 @@ export default function InquiriesPage() {
                                 {formatDateTime(inquiry.updated_at)}
                               </span>
                               {inquiry.store?.name && (
-                                <span>{inquiry.store.name}</span>
+                                <span className="flex items-center">
+                                  <Store className="h-4 w-4 mr-1" />
+                                  {inquiry.store.name}
+                                </span>
+                              )}
+                              {inquiry.store?.profiles?.phone && (
+                                <span className="flex items-center">
+                                  <Phone className="h-4 w-4 mr-1" />
+                                  {inquiry.store.profiles.phone}
+                                </span>
                               )}
                               <span className="flex items-center">
                                 <MessageCircle className="h-4 w-4 mr-1" />

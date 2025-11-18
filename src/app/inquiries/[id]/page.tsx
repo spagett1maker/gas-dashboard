@@ -15,7 +15,10 @@ import {
   Send,
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Phone,
+  Store as StoreIcon,
+  MapPin
 } from 'lucide-react'
 
 const STATUSES = ['접수됨', '처리중', '완료', '보류']
@@ -57,7 +60,11 @@ export default function InquiryDetailPage() {
           priority,
           created_at,
           updated_at,
-          stores(name),
+          stores!store_id(
+            name,
+            address,
+            user_id
+          ),
           inquiry_responses(
             id,
             inquiry_id,
@@ -82,9 +89,24 @@ export default function InquiryDetailPage() {
         )
       }
 
+      let store: any = Array.isArray(data.stores) ? data.stores[0] : data.stores
+
+      // store의 user_id로 profile 조회
+      if (store?.user_id) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('phone')
+          .eq('id', store.user_id)
+          .single()
+
+        if (profileData) {
+          store = { ...store, profiles: { phone: profileData.phone } }
+        }
+      }
+
       const processedData = {
         ...data,
-        store: Array.isArray(data.stores) ? data.stores[0] : data.stores
+        store
       }
       setInquiry(processedData as Inquiry)
     } catch (error) {
@@ -289,12 +311,6 @@ export default function InquiryDetailPage() {
                 <Clock className="h-4 w-4" />
                 <span>작성일: {formatFullDateTime(inquiry.created_at)}</span>
               </div>
-              {inquiry.store?.name && (
-                <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span>{inquiry.store.name}</span>
-                </div>
-              )}
               {inquiry.updated_at !== inquiry.created_at && (
                 <div className="flex items-center space-x-2">
                   <Clock className="h-4 w-4" />
@@ -302,6 +318,33 @@ export default function InquiryDetailPage() {
                 </div>
               )}
             </div>
+
+            {/* 가게 정보 */}
+            {inquiry.store && (
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">가게 정보</h3>
+                <div className="space-y-2">
+                  {inquiry.store.name && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <StoreIcon className="h-4 w-4 text-gray-500" />
+                      <span className="font-medium text-gray-900">{inquiry.store.name}</span>
+                    </div>
+                  )}
+                  {inquiry.store.address && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <MapPin className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-700">{inquiry.store.address}</span>
+                    </div>
+                  )}
+                  {inquiry.store.profiles?.phone && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Phone className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-700">{inquiry.store.profiles.phone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* 내용 */}
             <div className="bg-gray-50 p-6 rounded-lg">

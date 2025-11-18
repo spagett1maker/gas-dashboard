@@ -7,7 +7,7 @@ import { formatDate } from '@/lib/utils'
 import AdminLayout from '@/components/layout/AdminLayout'
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Search, MapPin, Calendar, Eye, Users } from 'lucide-react'
+import { Search, MapPin, Calendar, Eye, Users, Phone } from 'lucide-react'
 
 export default function StoresPage() {
   const [stores, setStores] = useState<Store[]>([])
@@ -20,7 +20,7 @@ export default function StoresPage() {
     try {
       const { data, error } = await supabase
         .from('stores')
-        .select('*')
+        .select('id, name, address, user_id, created_at')
         .order('created_at', { ascending: false })
 
       if (error) {
